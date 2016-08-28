@@ -1,4 +1,4 @@
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, DEVNULL
 
 def parseAsyncOutput(text):
 	record = {}
@@ -19,6 +19,7 @@ def parseResult(text):
 	return { key : value }, eqPos+l+1
 
 def parseValue(text):
+	#print('parseValue: %s" % text)
 	if text[0] == '"':
 		return parseString(text)
 	elif text[0] == "[":
@@ -26,7 +27,7 @@ def parseValue(text):
 	elif text[0] == "{":
 		return parseTuple(text)
 	else:
-		raise ValueError("unable to parse value: $text")
+		raise ValueError("unable to parse value: %s" % text)
 
 def parseString(text):
 	if text[0] != '"':
@@ -78,9 +79,10 @@ class Gdb:
 		print("Created GDB session")
 
 		args=['gdb', '--interpreter=mi', binary]
-		self.process = Popen(args, stdin=PIPE, stdout=PIPE, universal_newlines=True)
+		self.process = Popen(args, stdin=PIPE, stdout=PIPE, stderr=DEVNULL, universal_newlines=True)
 
 		self.read()
+		self.command('tty /dev/null') # TODO: redircet to a pipe, capture
 
 	def read(self):
 		""" Read all input from the debugger, untile the "(gdb)" marker """
@@ -123,7 +125,7 @@ class Gdb:
 		type = line[0]
 		text = line[1:]
 
-		if type != '~':
+		if type not in ['~', '@', '&']:
 			#print('line %s' % line)
 			record = parseAsyncOutput(text)
 			record.update({'type':type})

@@ -25,7 +25,7 @@ class Functions:
 def waitForStopped(gdb):
 	records = gdb.read()
 	for r in records:
-		print(r)
+		#print(r)
 		if r['type'] == '*' and r['class'] == 'stopped':
 			return
 	
@@ -60,7 +60,7 @@ def runBinary(binary, output):
 	while True:
 		# get frame, line info
 		r, o = gdb.command('-stack-info-frame')
-		print(r)
+		#print(r)
 		frameInfo = r['result']['frame']
 		
 		r, o = gdb.command('-stack-info-depth')
@@ -69,10 +69,12 @@ def runBinary(binary, output):
 		if depth < mainDepth:
 			break
 			
-		functions.update(frameInfo)
+		# is this in our source?
+		if os.path.commonprefix([sourceDir, frameInfo['fullname']]) == sourceDir:
+			# analyse
+			functions.update(frameInfo)
+			sink.write({'location': {'file' : frameInfo['fullname'], 'line' : frameInfo['line']}})
 	
-		print('location: %s:%s, depth: %d' % (frameInfo['fullname'], frameInfo['line'], depth))
-	
-		gdb.command('-exec-next')
+		gdb.command('-exec-step')
 		waitForStopped(gdb)
 	
