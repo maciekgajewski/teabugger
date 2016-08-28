@@ -89,9 +89,10 @@ class Gdb:
 			stripped = line.strip() # TODO must a clever, pythonish way to do it in the for statemen
 			
 			if stripped == '(gdb)':
-				return
+				break
 			r = self.processLine(stripped)
-			result.append(r)
+			if r is not None:
+				result.append(r)
 		return result
 
 	def send(self, command):
@@ -112,6 +113,10 @@ class Gdb:
 			else:
 				oobs.append(r)
 		
+		assert result
+		if result['class'] == 'error':
+			raise RuntimeError("Error executing gdb command %s : %s" % (command, result['result']))
+		
 		return result, oobs
 		
 	def processLine(self, line):
@@ -122,6 +127,6 @@ class Gdb:
 			#print('line %s' % line)
 			record = parseAsyncOutput(text)
 			record.update({'type':type})
-			print('record: %s' % record)
+			#print('record: %s' % record)
 			return record
 
