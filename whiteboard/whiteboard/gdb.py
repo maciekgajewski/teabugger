@@ -40,33 +40,32 @@ def parseList(text):
 	assert text[0] == '['
 	pos = 1
 	result = []
-	while True:
+	while text[pos] != ']':
 		r, l = parseValue(text[pos:])
 		result.append(r)
 		pos = pos + l
 		if text[pos] == ',':
 			pos = pos+1
-			continue
-		elif text[pos] == ']':
-			return result, pos+1
-		raise ValueError("Error parsing list %s" % text[pos:])
+		elif text[pos] != ']':
+			raise ValueError("Error parsing list %s" % text[pos:])
+	
+	return result, pos+1
 		
 	
 def parseTuple(text):
-	if text[0] != '{':
-		raise ValueError("Error parsing tuple")
+	assert text[0] == '{'
 	result = {}
 	pos = 1
-	while True:
+	while text[pos] != '}':
 		r, l = parseResult(text[pos:])
 		result.update(r)
 		pos = pos + l
 		if text[pos] == ',':
 			pos = pos+1
-			continue
-		elif text[pos] == '}':
-			return result, pos+1
-		raise ValueError("Error parsing tuple %s" % text[pos:])
+		elif text[pos] != '}':
+			raise ValueError("Error parsing tuple %s" % text[pos:])
+	
+	return result, pos+1
 		
 
 
@@ -126,7 +125,7 @@ class Gdb:
 		text = line[1:]
 
 		if type not in ['~', '@', '&']:
-			#print('line %s' % line)
+			print('line %s' % line)
 			record = parseAsyncOutput(text)
 			record.update({'type':type})
 			#print('record: %s' % record)

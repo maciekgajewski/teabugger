@@ -57,6 +57,8 @@ def runBinary(binary, output):
 	mainDepth = int(r['result']['depth'])
 	print('main depth: %d' % mainDepth)
 	
+	lastDepth = mainDepth
+	
 	while True:
 		# get frame, line info
 		r, o = gdb.command('-stack-info-frame')
@@ -66,13 +68,24 @@ def runBinary(binary, output):
 		r, o = gdb.command('-stack-info-depth')
 		depth = int(r['result']['depth'])
 		
+		# detect main exit
 		if depth < mainDepth:
 			break
+		
 			
 		# is this in our source?
 		if os.path.commonprefix([sourceDir, frameInfo['fullname']]) == sourceDir:
-			# analyse
+
 			functions.update(frameInfo)
+
+			# analyse
+			r, o = gdb.command('-stack-list-locals --all-values')
+			locals = r['result']
+			
+			r, o = gdb.command('-stack-list-arguments --all-values')
+			arguments = r['result']
+			
+			sink.write({'frame': {'depth' : depth, 'locals' : locals, 'arguments': arguments}})
 			sink.write({'location': {'file' : frameInfo['fullname'], 'line' : frameInfo['line']}})
 	
 		gdb.command('-exec-step')
