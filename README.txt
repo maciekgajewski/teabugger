@@ -1,3 +1,3 @@
-This is a Python/gbd implementation of Teabagger, a teaching Debugger.
+Whiteboard is a "teacher's debugger", visualizing memory of simple C++ programs.
 
-Teabagger runs a binary and produces a trace of memory access operations, which can later be visualised and studied.
+Whiteboard runs a binary and produces a trace of memory access operations, which can later be visualised and studied.
