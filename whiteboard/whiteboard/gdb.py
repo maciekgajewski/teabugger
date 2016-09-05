@@ -29,6 +29,17 @@ def parseValue(text):
 	else:
 		raise ValueError("unable to parse value: %s" % text)
 
+def parseValueOrResult(text):
+	#print('parseValue: %s" % text)
+	if text[0] == '"':
+		return parseString(text)
+	elif text[0] == "[":
+		return parseList(text)
+	elif text[0] == "{":
+		return parseTuple(text)
+	else:
+		return parseResult(text)
+
 def parseString(text):
 	if text[0] != '"':
 		raise ValueError("Error parsing string")
@@ -41,7 +52,7 @@ def parseList(text):
 	pos = 1
 	result = []
 	while text[pos] != ']':
-		r, l = parseValue(text[pos:])
+		r, l = parseValueOrResult(text[pos:])
 		result.append(r)
 		pos = pos + l
 		if text[pos] == ',':
@@ -125,7 +136,7 @@ class Gdb:
 		text = line[1:]
 
 		if type not in ['~', '@', '&']:
-			print('line %s' % line)
+			#print('line %s' % line)
 			record = parseAsyncOutput(text)
 			record.update({'type':type})
 			#print('record: %s' % record)

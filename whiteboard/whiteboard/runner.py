@@ -80,11 +80,13 @@ def runBinary(binary, output):
 
 			# analyse
 			r, o = gdb.command('-stack-list-locals --all-values')
-			locals = r['result']
+			locals = r['result']['locals']
 			
-			r, o = gdb.command('-stack-list-arguments --all-values')
-			arguments = r['result']
+			r, o = gdb.command('-stack-list-arguments --all-values 0 0')
+			arguments = r['result']['stack-args'][0]['frame']['args']
 			
+			#print('>> args: %s' % arguments)
+			#print('>> locals: %s' % locals)
 			sink.write({'frame': {'depth' : depth, 'locals' : locals, 'arguments': arguments}})
 			sink.write({'location': {'file' : frameInfo['fullname'], 'line' : frameInfo['line']}})
 	
