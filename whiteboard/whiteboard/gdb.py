@@ -43,9 +43,18 @@ def parseValueOrResult(text):
 def parseString(text):
 	if text[0] != '"':
 		raise ValueError("Error parsing string")
-	
-	lastQuote = text.find('"', 1)
-	return text[1:lastQuote], lastQuote+1
+
+	value = ''
+	pos = 1
+	while text[pos] != '"':
+		if text[pos] == '\\':
+			pos = pos + 1
+			value = value + text[pos]
+		else:
+			value = value + text[pos]
+		pos = pos + 1
+
+	return text[1:pos], pos+1
 	
 def parseList(text):
 	assert text[0] == '['
