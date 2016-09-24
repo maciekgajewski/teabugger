@@ -1,5 +1,6 @@
-from . import gdb as _gdb
+from .gdb import Gdb
 from . import sink
+from .stack import Stack
 import os
 
 
@@ -21,7 +22,6 @@ class Functions:
 			self.functions.append(f)
 			sink.write({'function' : f})
 
-
 def waitForStopped(gdb):
 	records = gdb.read()
 	for r in records:
@@ -34,9 +34,10 @@ def waitForStopped(gdb):
 def runBinary(binary, output):
 	print("Hello, running %s" % binary, file=output)
 
-	gdb = _gdb.Gdb(binary)
+	gdb = Gdb(binary)
 	functions = Functions()
-	
+	stack = Stack(gdb)
+
 	# some config
 	gdb.command('set backtrace past-main on')
 	
@@ -71,23 +72,16 @@ def runBinary(binary, output):
 		# detect main exit
 		if depth < mainDepth:
 			break
-		
-			
+
 		# is this in our source?
 		if os.path.commonprefix([sourceDir, frameInfo['fullname']]) == sourceDir:
 
 			functions.update(frameInfo)
+			stack.update(frameInfo, depth-mainDepth)
 
-			# analyse
-			r, o = gdb.command('-stack-list-locals --all-values')
-			locals = r['result']['locals']
-			
-			r, o = gdb.command('-stack-list-arguments --all-values 0 0')
-			arguments = r['result']['stack-args'][0]['frame']['args']
-			
 			#print('>> args: %s' % arguments)
 			#print('>> locals: %s' % locals)
-			sink.write({'frame': {'depth' : depth, 'locals' : locals, 'arguments': arguments}})
+			#sink.write({'frame': {'depth' : depth, 'locals' : locals, 'arguments': arguments}})
 			sink.write({'location': {'file' : frameInfo['fullname'], 'line' : frameInfo['line']}})
 	
 		gdb.command('-exec-step')
