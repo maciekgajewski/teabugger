@@ -31,8 +31,8 @@ def waitForStopped(gdb):
 	
 	assert False
 
-def runBinary(binary, output):
-	print("Hello, running %s" % binary, file=output)
+def runBinary(binary, params, output):
+	print("Hello, running %s, %s" % (binary, params), file=output)
 
 	gdb = Gdb(binary)
 	functions = Functions()
@@ -40,7 +40,11 @@ def runBinary(binary, output):
 
 	# some config
 	gdb.command('set backtrace past-main on')
-	
+
+	# args
+	if len(params) > 0:
+		r, o = gdb.command('-exec-arguments %s' % ' '.join(params))
+
 	# set breakpoit at the beginning of main, get the source dir and file name
 	r,o = gdb.command('-break-insert main')
 	
@@ -79,11 +83,10 @@ def runBinary(binary, output):
 			functions.update(frameInfo)
 			stack.update(frameInfo, depth-mainDepth)
 
-			#print('>> args: %s' % arguments)
-			#print('>> locals: %s' % locals)
-			#sink.write({'frame': {'depth' : depth, 'locals' : locals, 'arguments': arguments}})
 			sink.write({'location': {'file' : frameInfo['fullname'], 'line' : frameInfo['line']}})
-	
+		else:
+			print('other call: %s' % frameInfo['func'])
+
 		gdb.command('-exec-step')
 		waitForStopped(gdb)
 	

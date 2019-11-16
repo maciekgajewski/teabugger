@@ -8,5 +8,6 @@ if len(sys.argv) < 2:
 	sys.exit(1)
 
 binary = sys.argv[1]
+params = sys.argv[2:]
 
-whiteboard.runBinary(binary, sys.stdout)
+whiteboard.runBinary(binary, params, sys.stdout)
